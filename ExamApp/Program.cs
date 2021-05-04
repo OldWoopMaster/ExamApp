@@ -11,6 +11,7 @@ namespace ExamApp
     class Program
     {
         private static readonly string sqliteConnectionString = @"Logs.db";
+        public static string date = "";
         
         private static string GetData(string uri)
         {
@@ -25,8 +26,17 @@ namespace ExamApp
         }
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Define date:");
+                date = Console.ReadLine();
+            }
+            else date = args[0];
+            if (date.Equals(""))
+                throw new ArgumentException("No date argument");
+            Console.WriteLine("Argument: " + date);
             Console.WriteLine("Sending HTTP request..");
-            string data = GetData("http://www.dsdev.tech/logs/20210103");
+            string data = GetData("http://www.dsdev.tech/logs/" + date);
             Console.WriteLine("Done.\nParsing HTTP response..");
             DataM logs = new DataM();
             logs = JsonSerializer.Deserialize<DataM>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
