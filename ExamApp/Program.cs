@@ -1,9 +1,11 @@
 ﻿//.NET 5.0
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
-using System.IO;
 using SQLite;
 
 namespace ExamApp
@@ -12,18 +14,7 @@ namespace ExamApp
     {
         private static readonly string sqliteConnectionString = @"Logs.db";
         public static string date = "";
-        
-        private static string GetData(string uri)
-        {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.ContentType = @"application/json;charset=""utf-8""";
-            request.Method = "GET";
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-            {
-                return reader.ReadToEnd();
-            }
-        }
+   
         static void Main(string[] args)
         {
             if (args.Length == 0)
@@ -36,10 +27,10 @@ namespace ExamApp
                 throw new ArgumentException("No date argument");
             Console.WriteLine("Argument: " + date);
             Console.WriteLine("Sending HTTP request..");
-            string data = GetData("http://www.dsdev.tech/logs/" + date);
+            var httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri("http://www.dsdev.tech/logs/" + date);
             Console.WriteLine("Done.\nParsing HTTP response..");
-            DataM logs = new DataM();
-            logs = JsonSerializer.Deserialize<DataM>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var logs = await httpClient.GetFromJsonAsync<DataM>(date);
             Console.WriteLine("Done.\nStarting sort..");
             logs.Sort();
             Console.WriteLine("Done\nInserting into db..");
